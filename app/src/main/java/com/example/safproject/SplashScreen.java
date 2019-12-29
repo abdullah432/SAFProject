@@ -23,7 +23,6 @@ public class SplashScreen extends AppCompatActivity {
             Method.load_Directory_Files(storage);
         }
 
-
         Intent intent = new Intent(SplashScreen.this, MainActivity.class);
         startActivity(intent);
     }

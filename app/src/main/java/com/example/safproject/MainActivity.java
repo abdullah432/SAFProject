@@ -26,12 +26,10 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements RecyclerViewAdapter.clickListener,
-        BottomSheetDialog.bottomSheetListner, DialogListener {
+public class MainActivity extends AppCompatActivity  {
 
     private RecyclerView recyclerView;
     private RecyclerViewAdapter recyclerViewAdapter;
-    private int videoPosition;
     private Uri fileUri;
 
     //
@@ -57,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
         recyclerView.setNestedScrollingEnabled(false);
 
-        recyclerViewAdapter = new RecyclerViewAdapter(this, this);
+        recyclerViewAdapter = new RecyclerViewAdapter(this);
 
         recyclerView.setAdapter(recyclerViewAdapter);
 
@@ -133,65 +131,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         }
     }
 
-    @Override
-    public void onIconMoreClick(int position) {
-        //From arraylist this position file is selected
-        videoPosition = position;
-
-        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog();
-        bottomSheetDialog.setVideoPosition(position);
-        bottomSheetDialog.show(getSupportFragmentManager(),bottomSheetDialog.getTag());
-    }
-
-    @Override
-    public void deleteVideoFromList() {
-        //Show delete alert
-        DeleteDialog deleteDialog = new DeleteDialog();
-        deleteDialog.show(getSupportFragmentManager(),deleteDialog.getTag());
-    }
-
-    @Override
-    public void deleteFile() {
-        //Here goes the logic of deletion
-        Boolean result;
-        File file = Constant.allMediaList.get(videoPosition);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-
-            List<UriPermission> permissions = getContentResolver().getPersistedUriPermissions();
-
-            if (permissions != null && permissions.size()>0){
-                fileUri = permissions.get(0).getUri();
-                deleteFileWithStorageAccessFramework(file);
-            }else {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Please select external storage directorye (e.g SDCard)")
-                        .setMessage("Due to change in android security policy it is not possible to delete file from" +
-                                "sdcard without permission.")
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                            }
-                        })
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                                startActivityForResult(intent, 1);
-                            }
-                        }).show();
-            }
-
-        }else {
-            result = file.delete();
-            if (result){
-                Constant.allMediaList.remove(videoPosition);
-            }else {
-                Toast.makeText(this,"Deletion Failed",Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -207,54 +146,4 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         }
     }
 
-    private void deleteFileWithStorageAccessFramework(File selectedFile) {
-
-        DocumentFile documentFile = DocumentFile.fromTreeUri(this,fileUri);
-
-        String[] parts = (selectedFile.getPath()).split("\\/");
-
-        for (int i=3; i<parts.length; i++){
-            if (documentFile != null){
-                documentFile = documentFile.findFile(parts[i]);
-            }
-        }
-
-        if (documentFile == null){
-            //file not found in tree search
-            //user select wrong directory
-
-            //show permission dialog again
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Please select external storage directorye (e.g SDCard)")
-                    .setMessage("Due to change in android security policy it is not possible to delete file from" +
-                            "sdcard without permission.")
-                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-
-                        }
-                    })
-                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                            startActivityForResult(intent, 1);
-                        }
-                    }).show();
-        }
-        else {
-            //file found
-            //now we can delete it
-            if (documentFile.delete()){
-                //delete successfully
-                Constant.allMediaList.remove(videoPosition);
-
-                recyclerViewAdapter.notifyItemRemoved(videoPosition);
-            }
-            else {
-                Toast.makeText(this,"Deletion Failed",Toast.LENGTH_SHORT).show();
-            }
-        }
-
-    }
 }

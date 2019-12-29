@@ -5,8 +5,6 @@ import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -18,18 +16,16 @@ import com.bumptech.glide.Glide;
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
-    private clickListener listener;
 
-    RecyclerViewAdapter(Context mContext, clickListener listener){
+    RecyclerViewAdapter(Context mContext){
         this.mContext = mContext;
-        this.listener = listener;
     }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.files_list,parent,false);
-        return new FileLayoutHolder(view, listener);
+        return new FileLayoutHolder(view);
     }
 
     @Override
@@ -53,25 +49,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         TextView videoTitle;
         ImageView ic_more_btn;
 
-        public FileLayoutHolder(@NonNull View itemView, final clickListener listener) {
+        public FileLayoutHolder(@NonNull View itemView) {
             super(itemView);
 
             thumbnail = itemView.findViewById(R.id.thumbnail);
             videoTitle = itemView.findViewById(R.id.videotitle);
             ic_more_btn = itemView.findViewById(R.id.ic_more_btn);
 
-            ic_more_btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (getAdapterPosition() != RecyclerView.NO_POSITION)
-                        listener.onIconMoreClick(getAdapterPosition());
-                }
-            });
         }
     }
 
-    public interface clickListener{
-        //position is the same position of video in arraylist allMediaList
-        void onIconMoreClick(int position);
-    }
 }
